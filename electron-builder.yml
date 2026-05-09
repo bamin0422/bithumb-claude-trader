@@ -1,0 +1,18 @@
+appId: dev.mindaein.bithumb-claude-trader
+productName: Bithumb Claude Trader
+mac:
+  category: public.app-category.finance
+  target:
+    - target: dmg
+      arch: [arm64]
+  identity: null   # unsigned for now
+npmRebuild: false
+files:
+  - "out/**/*"
+  - "prompts/**/*"
+  - "package.json"
+asarUnpack:
+  - "**/better-sqlite3/**"
+  - "**/keytar/**"
+directories:
+  output: release
