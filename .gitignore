@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+out/
+build/
+*.tsbuildinfo
+
+# Electron
+.electron-builder-cache/
+release/
+
+# data / secrets
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+trader-config-secrets.json
+*.keystore
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+
+# misc
+coverage/
+.nyc_output/
+.cache/
+.turbo/
