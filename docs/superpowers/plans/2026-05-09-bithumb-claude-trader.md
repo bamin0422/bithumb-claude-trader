@@ -3209,7 +3209,112 @@ git commit -m "test: e2e paper cycle smoke test"
 
 ---
 
-## Task 27: README, electron-builder, GitHub repo
+## Task 27: Public IP detection and Bithumb 5300 guidance
+
+**Files:**
+- Create: `electron/network/public-ip.ts`
+- Modify: `electron/ipc.ts` (add `network:public-ip` handler)
+- Modify: `electron/preload.ts` (expose `network.publicIp`)
+- Modify: `electron/bithumb/private.ts` (translate 5300/5500 errors with IP hint)
+- Modify: `renderer/src/pages/Settings.tsx` (add "Show current public IP" button)
+- Modify: `electron/notifications.ts` (already created — add `notifyIpMismatch` helper)
+
+- [ ] **Step 1: Public IP fetch helper**
+
+`electron/network/public-ip.ts`:
+```ts
+const SOURCES = [
+  "https://api.ipify.org?format=json",
+  "https://api.ip.sb/jsonip",
+  "https://ifconfig.me/all.json"
+];
+
+export async function getPublicIp(): Promise<string | null> {
+  for (const url of SOURCES) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) continue;
+      const j = await r.json();
+      const ip = j.ip ?? j.ip_addr ?? null;
+      if (typeof ip === "string" && /^\d+\.\d+\.\d+\.\d+$/.test(ip)) return ip;
+    } catch { continue; }
+  }
+  return null;
+}
+```
+
+- [ ] **Step 2: Wrap private API errors with IP hint**
+
+In `electron/bithumb/private.ts`, replace the `if (json.status !== "0000")` block in `call()`:
+```ts
+if (json.status !== "0000") {
+  const code = String(json.status);
+  let hint = "";
+  if (code === "5300" || code === "5500") {
+    hint = " (이 에러는 보통 등록된 IP와 현재 공인 IP가 다를 때 발생합니다. Settings에서 현재 IP 확인 후 빗썸 API 설정에 등록하세요.)";
+  }
+  const err: any = new Error(`bithumb ${endpoint}: ${code} ${json.message}${hint}`);
+  err.status = code; err.is_ip_error = (code === "5300" || code === "5500");
+  throw err;
+}
+```
+
+- [ ] **Step 3: IPC handler**
+
+In `electron/ipc.ts`, add (above the trader handlers):
+```ts
+ipcMain.handle("network:public-ip", async () => {
+  const { getPublicIp } = await import("@main/network/public-ip");
+  return { ip: await getPublicIp() };
+});
+```
+
+- [ ] **Step 4: Preload expose**
+
+In `electron/preload.ts`, add to the `window.api` object and the global type:
+```ts
+network: { publicIp: () => ipcRenderer.invoke("network:public-ip") }
+```
+
+- [ ] **Step 5: Settings page button**
+
+In `renderer/src/pages/Settings.tsx`, inside the "Bithumb API" Section block (before the API Key input), add:
+```tsx
+<div className="flex items-center gap-2 text-sm">
+  <button onClick={async () => {
+    const r = await (window as any).api.network.publicIp();
+    alert(r.ip ? `Current public IP:\n${r.ip}\n\n빗썸 API 보안 설정에 이 IP를 등록하세요. (변경되면 다시 갱신 필요)` : "IP 조회 실패");
+  }} className="px-3 py-1 bg-neutral-700 rounded">현재 공인 IP 확인</button>
+  <span className="text-neutral-400">⚠️ 출금 권한은 반드시 OFF로 발급하세요</span>
+</div>
+```
+
+- [ ] **Step 6: Notify on IP-error during trading cycle**
+
+In `electron/trader/orchestrator.ts`, wrap the `bpriv.getBalance(...)` catch:
+```ts
+} catch (e: any) {
+  j.insertEvent("ERROR", "BITHUMB", `balance fetch: ${e.message}`);
+  if (e.is_ip_error) {
+    const { getPublicIp } = await import("@main/network/public-ip");
+    const ip = await getPublicIp();
+    const { notify } = await import("@main/notifications");
+    notify("Bithumb IP 불일치", `현재 IP: ${ip ?? "확인 실패"} — 빗썸 API 설정에서 등록 갱신 필요`);
+  }
+}
+```
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add electron/network/ electron/ipc.ts electron/preload.ts electron/bithumb/private.ts \
+  electron/trader/orchestrator.ts renderer/src/pages/Settings.tsx
+git commit -m "feat: public IP detection, 5300 error hint, settings button, native notify"
+```
+
+---
+
+## Task 28: README, electron-builder, GitHub repo
 
 **Files:**
 - Create: `README.md`, `electron-builder.yml`
