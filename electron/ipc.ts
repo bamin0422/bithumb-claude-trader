@@ -39,4 +39,10 @@ export function registerIpc(db: Database.Database, orch: Orchestrator) {
     // future: place market sell of all positions
     return { ok: true };
   });
+  ipcMain.handle("backtest:run", async (_e, p) => {
+    const { fetchHistorical } = await import("@main/backtest/fetcher");
+    const { runBacktest } = await import("@main/backtest/engine");
+    const candles = await fetchHistorical(p.symbols, p.timeframe ?? "1h");
+    return runBacktest(candles, { symbols: p.symbols, startCandleIdx: 200, steps: p.steps ?? 50, initialKrw: p.initialKrw ?? 1_000_000 });
+  });
 }

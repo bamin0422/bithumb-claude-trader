@@ -19,7 +19,8 @@ contextBridge.exposeInMainWorld("api", {
     start: () => ipcRenderer.invoke("trader:start"),
     stop: () => ipcRenderer.invoke("trader:stop"),
     emergencyStop: () => ipcRenderer.invoke("trader:emergency-stop")
-  }
+  },
+  backtest: { run: (p: any) => ipcRenderer.invoke("backtest:run", p) }
 });
 
 declare global {
@@ -32,6 +33,7 @@ declare global {
       settings: { get: () => Promise<any>; update: (p: any) => Promise<any>; reset: () => Promise<any> };
       bithumb: { setKeys: (k: string, s: string) => Promise<any>; clearKeys: () => Promise<any> };
       trader: { runNow: () => Promise<any>; start: () => Promise<any>; stop: () => Promise<any>; emergencyStop: () => Promise<any> };
+      backtest: { run: (p: any) => Promise<any> };
     };
   }
 }
