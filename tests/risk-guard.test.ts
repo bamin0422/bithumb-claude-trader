@@ -33,37 +33,37 @@ const buyDec = (over?: any) => ({
 describe("risk-guard", () => {
   it("blocks when trading disabled", () => {
     const r = evaluateDecision(buyDec(), ctx(), S({ trading_enabled: false }));
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/disabled/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/disabled/i);
   });
   it("blocks when daily loss limit reached", () => {
     const r = evaluateDecision(buyDec(), ctx({ daily_pnl_pct: -10 }), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/daily/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/daily/i);
   });
   it("blocks when confidence below min", () => {
     const r = evaluateDecision(buyDec({ confidence: 0.4 }), ctx(), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/confidence/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/confidence/i);
   });
   it("caps krw_amount to max_buy_ratio", () => {
     const r = evaluateDecision(buyDec({ krw_amount: 10_000_000 }), ctx(), S());
-    expect(r.ok).toBe(true); expect(r.adjusted!.krw_amount).toBe(250_000);
+    expect(r.ok).toBe(true); if (r.ok) expect(r.adjusted!.krw_amount).toBe(250_000);
   });
   it("blocks when concurrent positions exceeded", () => {
     const positions = ["A","B","C","D","E"].map(s => ({ symbol: s, qty: 1, avg_price: 1, entered_at: "", highest_pnl_pct: 0, stop_loss_price: null, take_profit_price: null, last_updated: "" }));
     const r = evaluateDecision(buyDec(), ctx({ positions }), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/concurrent/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/concurrent/i);
   });
   it("blocks rebuy within 30min", () => {
     const r = evaluateDecision(buyDec(), ctx({
       recent_trades_for_symbol: [{ attempted_at: new Date(Date.now()-10*60_000).toISOString(), action: "BUY" }]
     }), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/recent/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/recent/i);
   });
   it("blocks below minimum order amount", () => {
     const r = evaluateDecision(buyDec({ krw_amount: 1000 }), ctx(), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/minimum/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/minimum/i);
   });
   it("blocks market order when spread too wide", () => {
     const r = evaluateDecision(buyDec({ order_type: "MARKET" }), ctx({ spread_pct: 0.5 }), S());
-    expect(r.ok).toBe(false); expect(r.reason).toMatch(/spread/i);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.reason).toMatch(/spread/i);
   });
 });
