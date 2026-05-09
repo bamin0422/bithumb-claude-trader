@@ -99,6 +99,12 @@ export class Orchestrator {
         positions = dbPositions.map(p => ({ ...p, current_price: market[p.symbol]?.ticker?.last ?? p.avg_price }));
       } catch (e: any) {
         j.insertEvent("ERROR", "BITHUMB", `balance fetch: ${e.message}`);
+        if (e.is_ip_error) {
+          const { getPublicIp } = await import("@main/network/public-ip");
+          const ip = await getPublicIp();
+          const { notify } = await import("@main/notifications");
+          notify("Bithumb IP 불일치", `현재 IP: ${ip ?? "확인 실패"} — 빗썸 API 설정에서 등록 갱신 필요`);
+        }
       }
     }
     const total_assets_krw = krw_balance + positions.reduce((a, p) => a + p.qty * p.current_price, 0);

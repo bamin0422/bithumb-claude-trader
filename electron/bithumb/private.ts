@@ -19,8 +19,14 @@ async function call(creds: Creds, endpoint: string, params: Record<string,any>) 
   });
   const json = await res.json();
   if (json.status !== "0000") {
-    const err: any = new Error(`bithumb ${endpoint}: ${json.status} ${json.message}`);
-    err.status = json.status; throw err;
+    const code = String(json.status);
+    let hint = "";
+    if (code === "5300" || code === "5500") {
+      hint = " (이 에러는 보통 등록된 IP와 현재 공인 IP가 다를 때 발생합니다. Settings에서 현재 IP 확인 후 빗썸 API 설정에 등록하세요.)";
+    }
+    const err: any = new Error(`bithumb ${endpoint}: ${code} ${json.message}${hint}`);
+    err.status = code; err.is_ip_error = (code === "5300" || code === "5500");
+    throw err;
   }
   return json.data;
 }

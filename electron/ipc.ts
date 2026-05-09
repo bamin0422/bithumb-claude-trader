@@ -39,6 +39,10 @@ export function registerIpc(db: Database.Database, orch: Orchestrator) {
     // future: place market sell of all positions
     return { ok: true };
   });
+  ipcMain.handle("network:public-ip", async () => {
+    const { getPublicIp } = await import("@main/network/public-ip");
+    return { ip: await getPublicIp() };
+  });
   ipcMain.handle("backtest:run", async (_e, p) => {
     const { fetchHistorical } = await import("@main/backtest/fetcher");
     const { runBacktest } = await import("@main/backtest/engine");

@@ -57,6 +57,13 @@ export default function Settings() {
         <div className="text-sm text-neutral-400 mb-2">
           Status: {form.bithumb.api_key_set ? "✅ Stored in macOS Keychain" : "❌ Not set"}
         </div>
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={async () => {
+            const r = await (window as any).api.network.publicIp();
+            alert(r.ip ? `Current public IP:\n${r.ip}\n\n빗썸 API 보안 설정에 이 IP를 등록하세요. (변경되면 다시 갱신 필요)` : "IP 조회 실패");
+          }} className="px-3 py-1 bg-neutral-700 rounded">현재 공인 IP 확인</button>
+          <span className="text-neutral-400">⚠️ 출금 권한은 반드시 OFF로 발급하세요</span>
+        </div>
         <input className="w-full bg-neutral-800 p-2 rounded mb-2" placeholder="API Key"
                value={bk.key} onChange={e=>setBk({...bk, key: e.target.value})}/>
         <input className="w-full bg-neutral-800 p-2 rounded mb-2" placeholder="API Secret" type="password"
