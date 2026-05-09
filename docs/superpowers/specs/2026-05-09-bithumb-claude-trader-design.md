@@ -291,7 +291,7 @@ CREATE INDEX idx_events_time ON events(at);
 
 ## 7. 대시보드 UI
 
-5개 페이지: Overview / Portfolio / Trade Log / Decisions / Settings.
+6개 페이지: Overview / Portfolio / Trade Log / Decisions / **Backtest** / Settings.
 
 상단 글로벌 헤더: 거래 ON/OFF 토글, 총자산, 오늘 P&L, 빨간 "긴급 정지" 버튼(전 종목 시장가 매도 + 24h 자동 재개 잠금).
 
@@ -341,20 +341,20 @@ CREATE INDEX idx_events_time ON events(at);
 9. Trader Orchestrator + Scheduler
 10. Executor (실주문 + 페이퍼)
 11. IPC bridge (preload)
-12. React 대시보드 5개 페이지
+12. React 대시보드 6개 페이지 (Backtest 포함)
 13. Settings + keytar
-14. 알림 (macOS native + Discord)
+14. 알림 (macOS native)
 15. 자동시작 + 백그라운드
-16. 단위/통합 테스트
-17. README + 빌드 + GitHub repo 생성/푸시
+16. 백테스트 엔진 (과거 OHLCV 다운로드 + 시뮬레이터 + 가상 체결)
+17. 단위/통합 테스트
+18. README + 빌드 + GitHub repo 생성/푸시
 
-## 12. 미정 사항 / 결정 필요
+## 12. 확정 사항 (사용자 결정)
 
-이 문서 검토 시 다음을 확정할 것:
-- 거래 시작 시 초기 가용 KRW 한도 (전체? 일부?)
-- Discord 알림 사용 여부
-- 빌드 시 macOS 코드사인 (지금 unsigned 시작 → 추후)
-- 백테스트 기능 v1 포함 여부 (제외 권장)
+- **초기 거래 가용 KRW**: 전체 잔고 사용. (단 risk 한도 max_buy_ratio/max_position_ratio가 사이즈를 제한)
+- **Discord 알림**: v1 제외. macOS native 노티피케이션만.
+- **macOS 코드사인**: Unsigned로 시작. 추후 필요시 Apple Developer ID 추가.
+- **백테스트 기능**: v1 포함. 과거 OHLCV 다운로드 → 시뮬레이터에 주입 → 가상 체결. UI에 별도 페이지 `/backtest`. Claude API 호출 비용 발생 안내 표시.
 
 ## 13. 면책
 
