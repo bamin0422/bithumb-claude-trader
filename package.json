@@ -1,0 +1,53 @@
+{
+  "name": "bithumb-claude-trader",
+  "version": "0.1.0",
+  "description": "Bithumb auto-trader powered by Claude Code CLI",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev --watch",
+    "build": "electron-vite build",
+    "build:mac": "electron-vite build && electron-builder --mac --config electron-builder.yml",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "autoprefixer": "^10.5.0",
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
+    "postcss": "^8.5.14",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.3",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "better-sqlite3": "^12.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.20",
+    "electron-store": "^11.0.2",
+    "keytar": "^7.9.0",
+    "lucide-react": "^1.14.0",
+    "nanoid": "^5.1.11",
+    "node-cron": "^4.2.1",
+    "react-router-dom": "^7.15.0",
+    "recharts": "^3.8.1",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.4.3"
+  }
+}
