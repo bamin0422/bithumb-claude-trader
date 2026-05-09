@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { ema } from "../electron/indicators/ema";
 import { rsi } from "../electron/indicators/rsi";
+import { macd } from "../electron/indicators/macd";
+import { bollinger } from "../electron/indicators/bollinger";
+import { atr } from "../electron/indicators/atr";
 
 describe("ema", () => {
   it("matches manual calc for period 3", () => {
@@ -18,5 +21,33 @@ describe("rsi", () => {
     const r = rsi(closes, 14);
     expect(r[r.length - 1]).toBeGreaterThan(50);
     expect(r[r.length - 1]).toBeLessThan(80);
+  });
+});
+
+describe("macd", () => {
+  it("returns three series of equal length", () => {
+    const closes = Array.from({length: 60}, (_, i) => 100 + Math.sin(i/3) * 5);
+    const m = macd(closes);
+    expect(m.macd.length).toBe(60);
+    expect(m.signal.length).toBe(60);
+    expect(m.histogram.length).toBe(60);
+  });
+});
+
+describe("bollinger", () => {
+  it("upper > middle > lower for noisy series", () => {
+    const closes = Array.from({length: 30}, (_, i) => 100 + (i % 2 ? 1 : -1));
+    const b = bollinger(closes, 20, 2);
+    const i = 25;
+    expect(b.upper[i]).toBeGreaterThan(b.middle[i]);
+    expect(b.middle[i]).toBeGreaterThan(b.lower[i]);
+  });
+});
+
+describe("atr", () => {
+  it("positive after period candles", () => {
+    const c = Array.from({length: 30}, (_, i) => ({ t: i, o: 100, h: 102, l: 98, c: 100+i*0.1, v: 1 }));
+    const a = atr(c, 14);
+    expect(a.slice(-1)[0]).toBeGreaterThan(0);
   });
 });
