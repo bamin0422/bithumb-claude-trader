@@ -6,6 +6,7 @@ import { Orchestrator } from "@main/trader/orchestrator";
 import { startScheduler } from "@main/scheduler";
 import { registerIpc } from "@main/ipc";
 import { getSettings } from "@main/storage/settings";
+import { syncAutoStart } from "@main/autostart";
 
 async function createWindow() {
   const win = new BrowserWindow({
@@ -24,6 +25,7 @@ app.whenReady().then(async () => {
   const db = openDb(dbPath);
   const orch = new Orchestrator(db);
   registerIpc(db, orch);
+  syncAutoStart();
   await createWindow();
   if (getSettings().trading_enabled) startScheduler(orch);
 });
