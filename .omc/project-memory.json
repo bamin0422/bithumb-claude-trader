@@ -1,0 +1,173 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1778331247003,
+  "projectRoot": "/Users/mindaein/Project/bithumb-claude-trader",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "19.2.6",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.6",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "7.3.3",
+        "category": "build"
+      },
+      {
+        "name": "vitest",
+        "version": "2.1.9",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "pnpm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": "pnpm test",
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm dev",
+    "scripts": {
+      "dev": "electron-vite dev --watch",
+      "build": "electron-vite build",
+      "build:mac": "electron-vite build && electron-builder --mac --config electron-builder.yml",
+      "test": "vitest run",
+      "test:watch": "vitest",
+      "lint": "tsc --noEmit"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": "*.test.ts",
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 0,
+      "lastAccessed": 1778331246979,
+      "keyFiles": []
+    },
+    "electron": {
+      "path": "electron",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1778331246980,
+      "keyFiles": [
+        "autostart.ts",
+        "btc-dominance.ts",
+        "claude-runner.ts",
+        "correlation.ts",
+        "fear-greed.ts"
+      ]
+    },
+    "out": {
+      "path": "out",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1778331246989,
+      "keyFiles": []
+    },
+    "prompts": {
+      "path": "prompts",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1778331246990,
+      "keyFiles": [
+        "crypto-trading-ai-guide.md"
+      ]
+    },
+    "release": {
+      "path": "release",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1778331246990,
+      "keyFiles": [
+        "Bithumb Claude Trader-0.1.0-arm64.dmg",
+        "Bithumb Claude Trader-0.1.0-arm64.dmg.blockmap",
+        "builder-debug.yml"
+      ]
+    },
+    "renderer": {
+      "path": "renderer",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1778331246990,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "shared": {
+      "path": "shared",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1778331246990,
+      "keyFiles": [
+        "types.ts",
+        "zod-schemas.ts"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 8,
+      "lastAccessed": 1778331246991,
+      "keyFiles": [
+        "bithumb-public.test.ts",
+        "bithumb-sign.test.ts",
+        "circuit-breaker.test.ts",
+        "claude-parse.test.ts",
+        "db.test.ts"
+      ]
+    },
+    "renderer/src": {
+      "path": "renderer/src",
+      "purpose": "Source code",
+      "fileCount": 4,
+      "lastAccessed": 1778331246992,
+      "keyFiles": [
+        "App.tsx",
+        "index.css",
+        "index.css.d.ts"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

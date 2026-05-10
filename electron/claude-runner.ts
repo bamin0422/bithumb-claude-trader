@@ -1,12 +1,12 @@
 import { spawn } from "node:child_process";
-import { writeFile, mkdtemp } from "node:fs/promises";
+import { writeFile, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { DecisionResponseSchema, type DecisionResponse } from "@shared/zod-schemas";
 
 const CLAUDE_BIN = process.env.CLAUDE_BIN ?? "claude";
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-opus-4-7";
-const TIMEOUT_MS = 120_000;
+const TIMEOUT_MS = 180_000;
 const MAX_RETRIES = 2;
 
 export type ClaudeInput = { systemPrompt: string; userJson: object };
@@ -21,7 +21,17 @@ export function parseClaudeEnvelope(stdout: string):
   try {
     const env = JSON.parse(stdout);
     const text = env.result ?? env.text ?? stdout;
-    const inner = typeof text === "string" ? JSON.parse(text) : text;
+    let inner: any;
+    if (typeof text === "string") {
+      // Strip markdown code fences if Claude wrapped JSON in them
+      const cleaned = text.trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```\s*$/i, "")
+        .trim();
+      inner = JSON.parse(cleaned);
+    } else {
+      inner = text;
+    }
     const decision = DecisionResponseSchema.parse(inner);
     return { ok: true, decision, cost_usd: env.total_cost_usd };
   } catch (e: any) {
@@ -38,45 +48,48 @@ export async function runClaudeDecision(input: ClaudeInput): Promise<ClaudeOk | 
   const userPrompt = [
     "Below is the current market and portfolio state as JSON.",
     "Follow the operating manual (system prompt) exactly.",
-    "Output ONLY the JSON schema specified in section 3.8. No prose.",
+    "Output ONLY the JSON object specified in section 7 (Output Schema). No prose. No markdown code fences.",
     "",
-    "```json",
-    JSON.stringify(input.userJson),
-    "```"
+    JSON.stringify(input.userJson)
   ].join("\n");
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const stdout = await spawnClaude(userPrompt, sysFile);
-      const parsed = parseClaudeEnvelope(stdout);
-      if (parsed.ok) {
-        return { ok: true, decision: parsed.decision, raw: stdout,
-                 cost_usd: parsed.cost_usd, duration_ms: Date.now() - t0 };
-      }
-      if (attempt === MAX_RETRIES) {
-        return { ok: false, error: parsed.error, raw: stdout, duration_ms: Date.now() - t0 };
-      }
-    } catch (e: any) {
-      if (attempt === MAX_RETRIES) {
-        return { ok: false, error: e.message, duration_ms: Date.now() - t0 };
+  try {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const stdout = await spawnClaude(userPrompt, sysFile);
+        const parsed = parseClaudeEnvelope(stdout);
+        if (parsed.ok) {
+          return { ok: true, decision: parsed.decision, raw: stdout,
+                   cost_usd: parsed.cost_usd, duration_ms: Date.now() - t0 };
+        }
+        if (attempt === MAX_RETRIES) {
+          return { ok: false, error: parsed.error, raw: stdout, duration_ms: Date.now() - t0 };
+        }
+      } catch (e: any) {
+        if (attempt === MAX_RETRIES) {
+          return { ok: false, error: e.message, duration_ms: Date.now() - t0 };
+        }
       }
     }
+    return { ok: false, error: "max retries exceeded", duration_ms: Date.now() - t0 };
+  } finally {
+    await rm(workdir, { recursive: true, force: true }).catch(() => {});
   }
-  return { ok: false, error: "max retries exceeded", duration_ms: Date.now() - t0 };
 }
 
-function spawnClaude(userPrompt: string, sysFile: string): Promise<string> {
+function spawnClaude(userPrompt: string, systemPromptFile: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const args = ["-p", userPrompt,
+    const args = [
+      "-p",
       "--output-format", "json",
-      "--system-prompt-file", sysFile,
+      "--append-system-prompt-file", systemPromptFile,
       "--model", MODEL,
-      "--max-turns", "1",
-      "--permission-mode", "denyAll"
+      "--no-session-persistence",
+      "--disallowedTools", "Bash Edit Write Read Grep Glob WebFetch WebSearch Task TodoWrite NotebookEdit"
     ];
     const child = spawn(CLAUDE_BIN, args, {
       env: { ...process.env, CI: "1" },
-      stdio: ["ignore", "pipe", "pipe"]
+      stdio: ["pipe", "pipe", "pipe"]
     });
     let out = "", err = "";
     child.stdout.on("data", c => out += c.toString());
@@ -85,8 +98,11 @@ function spawnClaude(userPrompt: string, sysFile: string): Promise<string> {
     child.on("error", e => { clearTimeout(timer); reject(e); });
     child.on("close", code => {
       clearTimeout(timer);
-      if (code !== 0) reject(new Error(`claude exit ${code}: ${err.slice(0, 300)}`));
+      if (code !== 0) reject(new Error(`claude exit ${code}: ${err.slice(0, 500)}`));
       else resolve(out);
     });
+    // Send user prompt via stdin (avoids ARG_MAX limit)
+    child.stdin.write(userPrompt);
+    child.stdin.end();
   });
 }
